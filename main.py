@@ -8,21 +8,17 @@ import serial
 import math
 import time
 
-# ---------------- Serial Setup ----------------
 ser = serial.Serial('COM9', 115200, timeout=0.05)  # Change COM port if needed
 
-# ---------------- Orientation State ----------------
 alpha = 0.98       # Complementary filter coefficient
 last_time = time.time()
 roll = 0.0
 pitch = 0.0
 yaw = 0.0
 
-# ---------------- Display variables ----------------
 yaw_mode = False  # Toggle yaw rotation
 ax = ay = az = 0.0  # Raw values for display
 
-# ---------------- OpenGL & Pygame Setup ----------------
 def resize(width, height):
     if height == 0:
         height = 1
@@ -48,7 +44,6 @@ def drawText(position, textString):
     glRasterPos3d(*position)
     glDrawPixels(textSurface.get_width(), textSurface.get_height(), GL_RGBA, GL_UNSIGNED_BYTE, textData)
 
-# ---------------- Complementary Filter ----------------
 def update_orientation(ax, ay, az, gx, gy, gz):
     """
     ax, ay, az: accelerometer in m/s²
@@ -63,23 +58,19 @@ def update_orientation(ax, ay, az, gx, gy, gz):
     if dt <= 0 or dt > 0.1:  # ignore large dt spikes
         return roll, pitch, yaw
 
-    # --- Accelerometer angles (gravity projection) ---
     accel_roll  = math.degrees(math.atan2(-ay, az))
     accel_pitch = math.degrees(math.atan2(ax, math.sqrt(ay*ay + az*az)))
 
-    # --- Gyro integration (rad/s → deg/s) ---
     roll_gyro  = roll + math.degrees(gx * dt)
     pitch_gyro = pitch + math.degrees(gy * dt)
     yaw_gyro   = yaw + math.degrees(gz * dt)
 
-    # --- Complementary filter ---
     roll  = alpha * roll_gyro  + (1 - alpha) * accel_roll
     pitch = alpha * pitch_gyro + (1 - alpha) * accel_pitch
     yaw   = yaw_gyro  # yaw is only gyro
 
     return roll, pitch, yaw
 
-# ---------------- Cube Drawing ----------------
 def draw_cube():
     global roll, pitch, yaw
 
@@ -139,7 +130,6 @@ def draw_cube():
     glVertex3f( 1.0,-0.2,-1.0)
     glEnd()
 
-# ---------------- Read Serial ----------------
 def read_serial():
     global ax, ay, az, roll, pitch, yaw
     try:
@@ -150,7 +140,6 @@ def read_serial():
     except:
         pass
 
-# ---------------- Main Loop ----------------
 def main():
     global yaw_mode
     pygame.init()
